@@ -1,6 +1,6 @@
-name: Build Android APK
+name: Build Spotifuck (Apktool)
 on:
-  workflow_dispatch: # Allows you to trigger the build manually
+  workflow_dispatch:
 
 jobs:
   build:
@@ -12,18 +12,23 @@ jobs:
       - name: Set up JDK
         uses: actions/setup-java@v4
         with:
-          java-version: '17' # Note: Change to '11' or '8' if it is an older repository
+          java-version: '17'
           distribution: 'temurin'
 
-      - name: Make Gradle executable
-        run: chmod +x ./gradlew
+      - name: Download Build Tools
+        run: |
+          wget https://bitbucket.org/iBotPeaches/apktool/downloads/apktool_2.9.3.jar -O apktool.jar
+          wget https://github.com/patrickfav/uber-apk-signer/releases/download/v1.3.0/uber-apk-signer-1.3.0.jar -O uber-apk-signer.jar
 
-      - name: Build Debug APK
-        run: ./gradlew assembleDebug
+      - name: Recompile APK with Apktool
+        run: java -jar apktool.jar b . -o spotifuck-unsigned.apk
 
-      - name: Upload APK
+      - name: Sign the APK
+        run: java -jar uber-apk-signer.jar -a spotifuck-unsigned.apk -o final-apk/
+
+      - name: Upload Finished APK
         uses: actions/upload-artifact@v4
         with:
-          name: app-debug-apk
-          path: app/build/outputs/apk/debug/*.apk
+          name: Spotifuck-Signed-APK
+          path: final-apk/*.apk
           
